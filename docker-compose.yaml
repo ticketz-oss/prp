@@ -1,0 +1,50 @@
+networks:
+  prp:
+
+volumes:
+  postgres_data:
+  redis_data:
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_DB=${POSTGRES_DB:-prp}
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - TZ=${TZ:-America/Sao_Paulo}
+    ports:
+      - "5432:5432"
+    expose:
+      - 5432
+    restart: always
+    networks:
+      - prp
+
+  redis:
+    image: redis:alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    expose:
+      - 6379
+    restart: always
+    volumes:
+      - redis_data:/data
+    networks:
+      - prp
+
+  pgadmin4:
+    image: elestio/pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD-123456}
+      PGADMIN_LISTEN_PORT: 8080
+    ports:
+      - "8088:8080"
+    networks:
+      - prp
